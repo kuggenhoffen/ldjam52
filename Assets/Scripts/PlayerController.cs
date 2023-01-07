@@ -70,8 +70,6 @@ public class PlayerController : MonoBehaviour
 
         toolAnimator.SetBool("ActivateTool", inputInteract);
 
-
-
         inputLook = Vector2.zero;
     }
 
@@ -98,7 +96,10 @@ public class PlayerController : MonoBehaviour
 
     public void OnInteractAnimation()
     {
-        if (targetObject) {
+        if (heldObject is ActivatableObject) {
+            (heldObject as ActivatableObject).Activate();
+        }
+        else if (targetObject) {
             if (targetObject.GetInteractType() == Interactable.InteractType.Pickup && heldObject == null) {
                 targetObject.Interact(heldObject);
                 PickupObject((PickupableObject)targetObject);
@@ -117,7 +118,6 @@ public class PlayerController : MonoBehaviour
         int layerMask = LayerMask.GetMask("Ignore Raycast");
         layerMask = ~layerMask;
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, 2.1f, layerMask)) {
-            Debug.Log("hit " + hit.transform.name);
             Interactable obj = hit.transform.GetComponentInParent<Interactable>();
             if (obj != null) {
                 targetObject = obj;

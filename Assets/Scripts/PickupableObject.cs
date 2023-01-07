@@ -13,7 +13,8 @@ public class PickupableObject : Interactable
         Hoe,
         WateringCan,
         Seeds,
-        Potato
+        Potato,
+        Book
     };
 
     protected Rigidbody rb;

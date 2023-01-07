@@ -13,13 +13,7 @@ public class ToolController : MonoBehaviour
         playerController = GetComponentInParent<PlayerController>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void PrintEvent()
+    public void AnimationEvent()
     {
         if (playerController) {
             playerController.OnInteractAnimation();
