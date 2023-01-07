@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -6393621877749710686}
   - component: {fileID: 7701413958346010465}
   m_Layer: 0
-  m_Name: Hammer
+  m_Name: Sickle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63,7 +63,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a552da1c087128b479dc3697861a4e4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pickupObjectType: 1
+  pickupObjectType: 2
 --- !u!1 &4769448030949636938
 GameObject:
   m_ObjectHideFlags: 0
@@ -90,14 +90,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4769448030949636938}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.175, z: 0}
-  m_LocalScale: {x: 0.11428228, y: 0.118384324, z: 0.17489709}
+  m_LocalRotation: {x: 0.050456084, y: -0, z: -0, w: 0.9987263}
+  m_LocalPosition: {x: 0, y: 0.1338, z: 0.059}
+  m_LocalScale: {x: 0.025047457, y: 0.062750794, z: 0.17489709}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4769448030493875661}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 5.784, y: 0, z: 0}
 --- !u!33 &4769448030949636942
 MeshFilter:
   m_ObjectHideFlags: 0

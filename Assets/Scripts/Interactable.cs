@@ -13,5 +13,6 @@ public abstract class Interactable : MonoBehaviour
 
     public abstract InteractType GetInteractType();
     
-    public abstract void Interact();
+
+    public abstract bool Interact(PickupableObject tool);
 }

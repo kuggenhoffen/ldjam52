@@ -6,7 +6,14 @@ using UnityEngine;
 public class PickupableObject : Interactable
 {
 
+    public enum PickupableObjectType {
+        Generic,
+        Hammer,
+        Sickle
+    };
+
     private Rigidbody rb;
+    public PickupableObjectType pickupObjectType;
 
     void OnEnable()
     {
@@ -18,9 +25,9 @@ public class PickupableObject : Interactable
         return InteractType.Pickup;
     }
 
-    public override void Interact()
+    public override bool Interact(PickupableObject tool)
     {
-        
+        return (tool == null);
     }
 
     private void SetLayerForChildrenRecursive(GameObject obj, int layer)

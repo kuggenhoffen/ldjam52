@@ -120,12 +120,12 @@ public class PlayerController : MonoBehaviour
     {
         if (targetObject) {
             if (targetObject.GetInteractType() == Interactable.InteractType.Pickup && heldObject == null) {
-                targetObject.Interact();
+                targetObject.Interact(heldObject);
                 PickupObject((PickupableObject)targetObject);
                 targetObject = null;
             }
             else if (targetObject.GetInteractType() == Interactable.InteractType.Action) {
-                targetObject.Interact();
+                targetObject.Interact(heldObject);
             }
         }
     }

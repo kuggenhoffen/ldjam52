@@ -24,6 +24,11 @@ public class CropController : Interactable
     private int interactCount;
     private float interactTimeout = 0f;
 
+    private Dictionary<PlotState, PickupableObject.PickupableObjectType> toolsForStates = new Dictionary<PlotState, PickupableObject.PickupableObjectType>() { 
+        { PlotState.ROCK, PickupableObject.PickupableObjectType.Hammer },
+        { PlotState.WEED, PickupableObject.PickupableObjectType.Sickle },
+    };
+
 
 
     // Start is called before the first frame update
@@ -51,30 +56,34 @@ public class CropController : Interactable
         return InteractType.Action;
     }
 
-    public override void Interact()
+    bool IsCorrectTool(PickupableObject tool)
     {
-        interactCount -= 1;
-        if (interactCount <= 0) {
-            HandleInteract();
-        }
-        else {
-            interactTimeout = interactTimeoutLimit;
-        }
+        PickupableObject.PickupableObjectType pt = toolsForStates.GetValueOrDefault(state, PickupableObject.PickupableObjectType.Generic);
+        return (pt != PickupableObject.PickupableObjectType.Generic) && (tool.pickupObjectType == pt);
     }
 
-    private void HandleInteract()
+    public override bool Interact(PickupableObject tool)
     {
+        bool res = false;
         switch (state) {
             case PlotState.ROCK:
-                state = PlotState.EMPTY;
-                break;
             case PlotState.WEED:
-                state = PlotState.EMPTY;
-            break;
+                if (IsCorrectTool(tool)) {
+                    interactCount -= 1;
+                    if (interactCount <= 0) {
+                        state = PlotState.EMPTY;
+                        res = true;
+                        Reset();
+                    }
+                    else {
+                        interactTimeout = interactTimeoutLimit;
+                    }
+                }
+                break;
             default:
-            break;
+                break;
         }
-        Reset();
+        return res;
     }
 
     private void Reset()
