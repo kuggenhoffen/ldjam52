@@ -9,10 +9,14 @@ public class PickupableObject : Interactable
     public enum PickupableObjectType {
         Generic,
         Hammer,
-        Sickle
+        Sickle,
+        Hoe,
+        WateringCan,
+        Seeds,
+        Potato
     };
 
-    private Rigidbody rb;
+    protected Rigidbody rb;
     public PickupableObjectType pickupObjectType;
 
     void OnEnable()
@@ -50,9 +54,10 @@ public class PickupableObject : Interactable
     {
         transform.parent = null;
         rb.isKinematic = false;
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        SetLayerForChildrenRecursive(transform.gameObject, LayerMask.NameToLayer("Default"));
+        rb.AddForce(holder.forward * 10f, ForceMode.Impulse);
+        //rb.velocity = Vector3.zero;
+        //rb.angularVelocity = Vector3.zero;
+        SetLayerForChildrenRecursive(transform.gameObject, LayerMask.NameToLayer("Pickupable"));
     }
 
 }

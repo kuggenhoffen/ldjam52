@@ -4,16 +4,12 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
 {
 
     private CharacterController characterController;
-    private PlayerInput input;
     private float rotY = 0f;
     private Transform cameraTransform;
-    private CursorLockMode lockMode;
-    private bool cursorInit;
     private Vector3 velocity;
     private float moveSpeed = 10f;
     private Interactable targetObject = null;
@@ -35,22 +31,6 @@ public class PlayerController : MonoBehaviour
         velocity = Vector3.zero;
     }
 
-    void OnEnable()
-    {
-        if (!input) {
-            input = GetComponent<PlayerInput>();
-        }
-        lockMode = Cursor.lockState;
-        Cursor.lockState = CursorLockMode.Locked;
-        cursorInit = false;
-    }
-
-    void OnDisable()
-    {
-        input.actions.Disable();
-        Cursor.lockState = lockMode;
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -67,14 +47,14 @@ public class PlayerController : MonoBehaviour
 
         transform.Rotate(Vector3.up * inputLook.x * Time.deltaTime);
 
-        if (cursorInit) {
+        //if (cursorInit) {
             rotY += inputLook.y * Time.deltaTime;
             rotY = Mathf.Clamp(rotY, -90f, 90f);
             cameraTransform.localRotation = Quaternion.Euler(Vector3.left * rotY);
-        }
+        /*}
         else {
             cursorInit = true;
-        }
+        }*/
 
         if (!characterController.isGrounded) {
             moveVec -= Physics.gravity * Time.deltaTime;
@@ -107,13 +87,13 @@ public class PlayerController : MonoBehaviour
 
     public void OnInputInteract(InputAction.CallbackContext ctx)
     {
-        inputInteract = (ctx.ReadValue<float>() > 0.5f);
+        inputInteract = (ctx.performed && ctx.ReadValue<float>() > 0.5f);
     }
 
     
     public void OnInputDrop(InputAction.CallbackContext ctx)
     {
-        inputDrop = (ctx.ReadValue<float>() > 0.5f);
+        inputDrop = (ctx.performed && ctx.ReadValue<float>() > 0.5f);
     }
 
     public void OnInteractAnimation()
@@ -134,7 +114,10 @@ public class PlayerController : MonoBehaviour
     {
         RaycastHit hit;
         targetObject = null;
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, 2.1f)) {
+        int layerMask = LayerMask.GetMask("Ignore Raycast");
+        layerMask = ~layerMask;
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, 2.1f, layerMask)) {
+            Debug.Log("hit " + hit.transform.name);
             Interactable obj = hit.transform.GetComponentInParent<Interactable>();
             if (obj != null) {
                 targetObject = obj;
