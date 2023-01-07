@@ -16,6 +16,15 @@ public class PlayerController : MonoBehaviour
     private bool cursorInit;
     private Vector3 velocity;
     private float moveSpeed = 10f;
+    private Interactable targetObject = null;
+
+    private Vector2 inputMove;
+    private Vector2 inputLook;
+    private bool inputInteract;
+    private bool inputDrop;
+    public Animator toolAnimator;
+    private PickupableObject heldObject;
+    public Transform toolProxy;
     
 
     // Start is called before the first frame update
@@ -45,8 +54,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector2 inputMove = input.actions["Move"].ReadValue<Vector2>();
-        Vector2 inputLook = input.actions["Look"].ReadValue<Vector2>();
+        // = input.actions["Move"].ReadValue<Vector2>();
+        //Vector2 inputLook = input.actions["Look"].ReadValue<Vector2>();
         bool grounded = characterController.isGrounded;
         Vector3 moveVec = transform.right * inputMove.x + transform.forward * inputMove.y;
 
@@ -73,5 +82,78 @@ public class PlayerController : MonoBehaviour
 
         velocity.y += Physics.gravity.y * Time.deltaTime;
         characterController.Move(velocity);
+
+        if (inputDrop)
+        {
+            DropObject();
+        }
+
+        toolAnimator.SetBool("ActivateTool", inputInteract);
+
+
+
+        inputLook = Vector2.zero;
     }
+
+    public void OnInputMove(InputAction.CallbackContext ctx)
+    {
+        inputMove = ctx.ReadValue<Vector2>();
+    }
+
+    public void OnInputLook(InputAction.CallbackContext ctx)
+    {
+        inputLook = ctx.ReadValue<Vector2>();
+    }
+
+    public void OnInputInteract(InputAction.CallbackContext ctx)
+    {
+        inputInteract = (ctx.ReadValue<float>() > 0.5f);
+    }
+
+    
+    public void OnInputDrop(InputAction.CallbackContext ctx)
+    {
+        inputDrop = (ctx.ReadValue<float>() > 0.5f);
+    }
+
+    public void OnInteractAnimation()
+    {
+        if (targetObject) {
+            if (targetObject.GetInteractType() == Interactable.InteractType.Pickup && heldObject == null) {
+                targetObject.Interact();
+                PickupObject((PickupableObject)targetObject);
+                targetObject = null;
+            }
+            else if (targetObject.GetInteractType() == Interactable.InteractType.Action) {
+                targetObject.Interact();
+            }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        RaycastHit hit;
+        targetObject = null;
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, 2.1f)) {
+            Interactable obj = hit.transform.GetComponentInParent<Interactable>();
+            if (obj != null) {
+                targetObject = obj;
+            }
+        }
+    }
+
+    void PickupObject(PickupableObject obj)
+    {
+        heldObject = obj;
+        obj.Pickup(toolProxy);
+    }
+
+    void DropObject()
+    {
+        if (heldObject) {
+            heldObject.Drop(toolProxy);
+            heldObject = null;
+        }
+    }
+
 }
