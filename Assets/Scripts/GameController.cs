@@ -32,6 +32,7 @@ public class GameController : MonoBehaviour
 
     public Transform deliveryProxy;
     public GameObject deliveryBoxPrefab;
+    public PotatoHopper hopper;
 
     // Start is called before the first frame update
     void Start()
@@ -132,10 +133,10 @@ public class GameController : MonoBehaviour
             blackout.SetText(string.Format("Winter has arrived."));
         }
         daysLeft -= 1;
-        blackout.DoBlackout(BlackoutIntermediateCallback, BlackoutFinishedCallback);
+        blackout.DoBlackout(ProcessRoundEnd, BlackoutFinishedCallback);
     }
 
-    void BlackoutIntermediateCallback()
+    void ProcessRoundEnd()
     {
         foreach (CropController crop in plots) {
             crop.RoundEnd();
@@ -145,6 +146,10 @@ public class GameController : MonoBehaviour
             deliveryBox.GetComponent<DeliveryBox>().items.AddRange(orderedItems);
         }
         orderedItems.Clear();
+        
+        int potatoCount = hopper.GetPotatoCount();
+        money += potatoCount * 20;
+        hopper.ClearPotatoes();
     }
 
     void BlackoutFinishedCallback()
@@ -155,12 +160,6 @@ public class GameController : MonoBehaviour
     public void SleepInBed()
     {
         EndRound();
-    }
-
-    public void SellPotato()
-    {
-        money += 20;
-        Debug.Log("Money is " + money);
     }
 
     public void OnClickBtnClose()

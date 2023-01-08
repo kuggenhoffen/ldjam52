@@ -15,10 +15,10 @@ public class CropController : Interactable
         Weed
     };
 
+    public GameObject plotObject;
     public GameObject rockObject;
     public GameObject weedObject;
-    public GameObject cropObject;
-    public GameObject growingObject;
+    public GameObject[] cropObjects;
     public GameObject shapedObject;
     public GameObject sownObject;
     public GameObject potatoPrefab;
@@ -33,7 +33,7 @@ public class CropController : Interactable
     private const int wateringInteractLimit = 1;
     private const int readyInteractLimit = 1;
     private const float interactTimeoutLimit = 1f; 
-    private const int growLimitFinished = 3;
+    private const int growLimitFinished = 4;
     private const int growLimitIntermediate = 1;
     private int growCount = 0;
     private int interactCount;
@@ -147,43 +147,78 @@ public class CropController : Interactable
 
     private void Reset()
     {
-        weedObject.SetActive(false);
-        rockObject.SetActive(false);
-        cropObject.SetActive(false);
-        growingObject.SetActive(false);
-        shapedObject.SetActive(false);
-        sownObject.SetActive(false);
+
+        bool plotEnable = false;
+        bool rockEnable = false;
+        bool weedEnable = false;
+        bool shapeEnable = false;
+        bool cropEnable = false;
+        bool sownEnable = false;
+
         switch (state) {
             case PlotState.Empty:
+                plotEnable = true;
                 interactCount = emptyInteractLimit;
                 break;
             case PlotState.Rock:
-                rockObject.SetActive(true);
+                plotEnable = true;
+                rockEnable = true;
                 interactCount = rockInteractLimit;
                 break;
             case PlotState.Weed:
-                weedObject.SetActive(true);
+                plotEnable = true;
+                weedEnable = true;
                 interactCount = weedInteractLimit;
                 break;
             case PlotState.Shaped:
-                shapedObject.SetActive(true);
+                shapeEnable = true;
                 interactCount = shapedInteractLimit;
                 break;
             case PlotState.Sown:
-                sownObject.SetActive(true);
+                sownEnable = true;
                 interactCount = wateringInteractLimit;
                 break;
             case PlotState.Growing:
-                growingObject.SetActive(true);
+                cropEnable = true;
+                sownEnable = true;
                 interactCount = wateringInteractLimit;
                 break;
             case PlotState.Ready:
-                cropObject.SetActive(true);
+                cropEnable = true;
+                sownEnable = true;
                 interactCount = readyInteractLimit;
                 break;
             default:
                 break;
             
+        }
+
+        SetObjectActive(plotObject, plotEnable);
+        SetObjectActive(weedObject, weedEnable);
+        SetObjectActive(rockObject, rockEnable);
+        SetObjectActive(shapedObject, shapeEnable);
+        SetObjectActive(sownObject, sownEnable);
+        SetCropObject(cropEnable);
+    }
+
+    void SetCropObject(bool enable)
+    {
+        int i = 0;
+        foreach (GameObject obj in cropObjects) {
+            if (i == growCount && enable) {
+                SetObjectActive(obj, true);
+            }
+            else {
+                SetObjectActive(obj, false);
+            }
+            i++;
+        }
+    }
+
+    void SetObjectActive(GameObject obj, bool enable)
+    {
+        if (obj.activeInHierarchy != enable) {
+            obj.SetActive(enable);         
         }
     }
 
@@ -199,13 +234,20 @@ public class CropController : Interactable
                 }
                 break;
             case PlotState.Sown:
-            case PlotState.Growing:
                 // Non-watered sown plots get cleared
-                if (!watered) {
+                if (false && !watered) {
                     state = PlotState.Empty;
                 }
                 else {
-                    
+                    state = PlotState.Growing;
+                }
+                break;
+            case PlotState.Growing:
+                // Non-watered sown plots get cleared
+                if (false && !watered) {
+                    state = PlotState.Empty;
+                }
+                else {
                     if (growCount >= growLimitFinished) {
                         state = PlotState.Ready;
                     }

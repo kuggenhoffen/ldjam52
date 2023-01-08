@@ -2,11 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PotatoHopper : Interactable
+public class PotatoHopper : MonoBehaviour
 {
-
-    public GameController gameController;
-
     List<Collider> colliders = new List<Collider>();
 
     // Start is called before the first frame update
@@ -20,24 +17,17 @@ public class PotatoHopper : Interactable
         
     }
 
-    public override InteractType GetInteractType()
+    public int GetPotatoCount()
     {
-        return InteractType.Action;
+        return colliders.Count;
     }
 
-    public override bool Interact(PickupableObject tool)
+    public void ClearPotatoes()
     {
-        if (tool != null) {
-            return false;
-        }
-
         foreach (Collider col in colliders) {
             Destroy(col.gameObject);
-            gameController.SellPotato();
         }
         colliders.Clear();
-
-        return true;
     }
 
     void OnTriggerEnter(Collider other)
