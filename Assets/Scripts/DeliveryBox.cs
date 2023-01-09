@@ -26,6 +26,11 @@ public class DeliveryBox : Interactable
         return InteractType.Action;
     }
 
+    public override bool Interact(PickupableObject tool, Vector3 interactLocation, Vector3 sourceLocation)
+    {
+        return Interact(tool);
+    }
+
     public override bool Interact(PickupableObject tool)
     {
         if (tool != null) {

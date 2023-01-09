@@ -19,7 +19,7 @@ public class Interactable : MonoBehaviour
 
     public virtual bool Interact(PickupableObject tool)
     {
-        return false;
+        return Interact(tool, Vector3.zero, Vector3.zero);
     }
 
     public virtual bool Interact(PickupableObject tool, Vector3 interactLocation, Vector3 sourceLocation)

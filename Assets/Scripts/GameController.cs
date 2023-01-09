@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 [RequireComponent(typeof(PlayerInput))]
@@ -10,15 +11,16 @@ public class GameController : MonoBehaviour
 {
 
     private PlayerInput input;
-    private CursorLockMode lockMode;
     private CropController[] plots;
+    public PlayerController playerController;
     private const float weedDistribution = 0.3f;
     private const float rockDistribution = 0.3f;
     private const float roundTime = 2 * 60f;
     private float roundTimer = 0f;
     
-    private int money = 100;
-    private int daysLeft = 2;
+    private const int seasonLength = 2;
+    private int daysLeft = seasonLength;
+    private int potatoesHarvested = 0;
 
     public Transform padUI;
     public Transform cursorUI; 
@@ -39,10 +41,17 @@ public class GameController : MonoBehaviour
     public GameObject player;
     public RectTransform timerNeedle;
     public TMPro.TMP_Text moneyText;
+    bool initialBlackout = true;
+
+    PersistentData persistentData;
 
     // Start is called before the first frame update
     void Start()
     {        
+        if (!input) {
+            input = GetComponent<PlayerInput>();
+        }
+        persistentData = GameObject.FindGameObjectWithTag("PersistentData").GetComponent<PersistentData>();
         plots = FindObjectsOfType<CropController>();
         InitializeCrops();
         pagePotato.gameObject.SetActive(false);
@@ -56,14 +65,15 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (input.enabled) {
+        if (input.isActiveAndEnabled) {
             roundTimer -= Time.deltaTime;
             if (roundTimer <= 0f) {
-                EndRound();
+                EndRound(initialBlackout);
+                initialBlackout = false;
             }
         }
         timerNeedle.eulerAngles = Vector3.forward * Mathf.Lerp(0f, -180f, (roundTime - roundTimer) / roundTime);
-        moneyText.SetText(string.Format("{0} $", money));
+        moneyText.SetText(string.Format("{0} $", persistentData.money));
     }
     
     void OnEnable()
@@ -97,12 +107,24 @@ public class GameController : MonoBehaviour
         }
     }
 
+    void SwitchInput(string inputMap)
+    {
+
+        bool inputEnabled = input.isActiveAndEnabled;
+        input.ActivateInput();
+        input.SwitchCurrentActionMap(inputMap);
+        if (!inputEnabled) {
+            input.DeactivateInput();
+        }
+    }
+
     public void ShowPadUI()
     {
+        btnPotato.gameObject.SetActive(persistentData.potatoInstructionsBought);
         padUI.gameObject.SetActive(true);
         cursorUI.gameObject.SetActive(false);
-        Cursor.lockState = lockMode;
-        input.SwitchCurrentActionMap("UI");
+        Cursor.lockState = CursorLockMode.Confined;
+        SwitchInput("UI");
         padVisible = true;
     }
 
@@ -110,9 +132,8 @@ public class GameController : MonoBehaviour
     {
         padUI.gameObject.SetActive(false);
         cursorUI.gameObject.SetActive(true);
-        lockMode = Cursor.lockState;
         Cursor.lockState = CursorLockMode.Locked;
-        input.SwitchCurrentActionMap("Player");
+        SwitchInput("Player");
         padVisible = false;
     }
 
@@ -125,6 +146,7 @@ public class GameController : MonoBehaviour
             CropController temp = plots[i];
             plots[i] = plots[n];
             plots[n] = temp;
+            temp.gameController = this;
         }
 
         n = 0;
@@ -137,17 +159,24 @@ public class GameController : MonoBehaviour
         }
     }
 
-    void EndRound()
+    void EndRound(bool initial = false)
     {
-        input.enabled = false;
+        input.DeactivateInput();
         if (daysLeft > 0) {
-            blackout.SetText(string.Format("{0} {1} until winter.", daysLeft, daysLeft > 1 ? "days" : "day"));
+            blackout.SetText(string.Format("Season {0}\n\n{1} {2} until winter.", persistentData.numSeasons, daysLeft, daysLeft > 1 ? "days" : "day"));
         }
         else {
-            blackout.SetText(string.Format("Winter has arrived."));
+            blackout.SetText(string.Format("Season {2}\n\nWinter has arrived.\nYou harvested {0} potatoes this season and {1} potatoes in total.\n\nPress any key to continue to next season.", potatoesHarvested, persistentData.potatoesHarvested, persistentData.numSeasons));
+            SwitchInput("WaitForAnyKey");
+            persistentData.numSeasons += 1;
+            input.ActivateInput();
         }
-        daysLeft -= 1;
-        blackout.DoBlackout(ProcessRoundEnd, BlackoutFinishedCallback);
+        if (initial) {
+            blackout.DoFadeOut(ProcessRoundEnd, BlackoutFinishedCallback);
+        }
+        else {
+            blackout.DoFadeIn(ProcessRoundEnd, BlackoutFinishedCallback, daysLeft <= 0);
+        }
     }
 
     void ProcessRoundEnd()
@@ -160,9 +189,11 @@ public class GameController : MonoBehaviour
             deliveryBox.GetComponent<DeliveryBox>().items.AddRange(orderedItems);
         }
         orderedItems.Clear();
+
+        playerController.DropObject();
         
         int potatoCount = hopper.GetPotatoCount();
-        money += potatoCount * 20;
+        persistentData.money += potatoCount * 20;
         hopper.ClearPotatoes();
 
         player.GetComponent<CharacterController>().enabled = false;
@@ -171,11 +202,21 @@ public class GameController : MonoBehaviour
         player.GetComponent<CharacterController>().enabled = true;
 
         roundTimer = roundTime;
+
+        if (daysLeft == seasonLength) {
+            ShowPadUI();
+        }
+        else {
+            HidePadUI();
+        }
+
+        daysLeft -= 1;
     }
 
     void BlackoutFinishedCallback()
     {
-        input.enabled = true;
+        Debug.Log("Blackout finished");
+        input.ActivateInput();
     }
 
     public void SleepInBed()
@@ -190,7 +231,7 @@ public class GameController : MonoBehaviour
 
     public void OnClickBtnQuit()
     {
-        Application.Quit();
+        SceneManager.LoadScene("TitleScene");
     }
 
     public void OnClickBtnPotatoFarming()
@@ -216,11 +257,11 @@ public class GameController : MonoBehaviour
 
     public void OnOrderItem(ShopItem shopItem)
     {
-        if (money - shopItem.price >= 0) {
+        if (persistentData.money - shopItem.price >= 0) {
             // Ehh, so nasty but took too much time trying to figure out how to define item specific callback in the item descriptor in prefab.
             // Probably it should not be defined in prefab as a UnityEvent but do it in some other way.
             if (shopItem.itemName == "Potato farming instructions") {
-                btnPotato.gameObject.SetActive(true);
+                persistentData.potatoInstructionsBought = true;
             }
             else {
                 if (shopItem.prefab != null) {
@@ -228,12 +269,23 @@ public class GameController : MonoBehaviour
                 }
             }
             Debug.Log("Bought item " + shopItem.itemName);
-            money -= shopItem.price;
+            persistentData.money -= shopItem.price;
         }
         else {
             // Show tooltip?
         }
     }
 
+    public void HarvestPotato()
+    {
+        potatoesHarvested += 1;
+        persistentData.potatoesHarvested += 1;
+    }
+
+    public void ContinueToNextSeason(InputAction.CallbackContext ctx)
+    {
+        Debug.Log("Continue to next");
+        SceneManager.LoadScene("PlayScene");
+    }
 
 }

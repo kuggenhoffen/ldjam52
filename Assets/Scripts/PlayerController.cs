@@ -47,14 +47,9 @@ public class PlayerController : MonoBehaviour
 
         transform.Rotate(Vector3.up * inputLook.x * Time.deltaTime);
 
-        //if (cursorInit) {
-            rotY += inputLook.y * Time.deltaTime;
-            rotY = Mathf.Clamp(rotY, -90f, 90f);
-            cameraTransform.localRotation = Quaternion.Euler(Vector3.left * rotY);
-        /*}
-        else {
-            cursorInit = true;
-        }*/
+        rotY += inputLook.y * Time.deltaTime;
+        rotY = Mathf.Clamp(rotY, -90f, 90f);
+        cameraTransform.localRotation = Quaternion.Euler(Vector3.left * rotY);
 
         if (!characterController.isGrounded) {
             moveVec -= Physics.gravity * Time.deltaTime;
@@ -132,7 +127,7 @@ public class PlayerController : MonoBehaviour
         obj.Pickup(toolProxy);
     }
 
-    void DropObject()
+    public void DropObject()
     {
         if (heldObject) {
             heldObject.Drop(toolProxy);

@@ -17,6 +17,7 @@ public class Blackout : MonoBehaviour
     {
         anim = GetComponent<Animator>();   
         gameObject.SetActive(false);
+        anim.StopPlayback();
     }
 
     // Update is called once per frame
@@ -30,10 +31,20 @@ public class Blackout : MonoBehaviour
         blackoutText.SetText(text);
     }
 
-    public void DoBlackout(BlackoutCallback intermediateCallback, BlackoutCallback finishCallback)
+    public void DoFadeIn(BlackoutCallback intermediateCallback, BlackoutCallback finishCallback, bool waitForInput = false)
     {
         gameObject.SetActive(true);
-        anim.SetTrigger("Play");
+        anim.SetTrigger("In");
+        anim.SetBool("WaitForOut", waitForInput);
+        intermediateCb = intermediateCallback;
+        finishCb = finishCallback;
+    }
+
+    public void DoFadeOut(BlackoutCallback intermediateCallback, BlackoutCallback finishCallback)
+    {
+        gameObject.SetActive(true);
+        anim.SetTrigger("Out");
+        anim.SetBool("WaitForOut", false);
         intermediateCb = intermediateCallback;
         finishCb = finishCallback;
     }

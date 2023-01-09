@@ -36,4 +36,9 @@ public class Bed : Interactable
         return true;
     }
 
+    public override bool Interact(PickupableObject tool, Vector3 interactLocation, Vector3 sourceLocation)
+    {
+        return Interact(tool);
+    }
+
 }

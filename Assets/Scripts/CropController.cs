@@ -30,6 +30,7 @@ public class CropController : Interactable
 
     public PlotState state;
     public bool watered;
+    public GameController gameController;
 
     private const int rockInteractLimit = 4;
     private const int weedInteractLimit = 2;
@@ -40,7 +41,7 @@ public class CropController : Interactable
     private const float interactTimeoutLimit = 1f; 
     private const int growLimitFinished = 3;
     private const int growLimitIntermediate = 1;
-    private int growCount = 0;
+    public int growCount = 0;
     private int interactCount;
     private float interactTimeout = 0f;
 
@@ -175,6 +176,7 @@ public class CropController : Interactable
         Reset();
         if (spawnPotato) {
             Instantiate(potatoPrefab, transform.position, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)));
+            gameController.HarvestPotato();
         }
     }
 
