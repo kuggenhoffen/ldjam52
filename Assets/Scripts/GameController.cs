@@ -18,7 +18,7 @@ public class GameController : MonoBehaviour
     private const float roundTime = 2 * 60f;
     private float roundTimer = 0f;
     
-    private const int seasonLength = 2;
+    private const int seasonLength = 10;
     private int daysLeft = seasonLength;
     private int potatoesHarvested = 0;
 
@@ -44,6 +44,12 @@ public class GameController : MonoBehaviour
     bool initialBlackout = true;
 
     PersistentData persistentData;
+    [SerializeField]
+    AudioSource playerAudioSource;
+    [SerializeField]
+    AudioClip boopClip;
+    [SerializeField]
+    AudioClip deniedClip;
 
     // Start is called before the first frame update
     void Start()
@@ -90,6 +96,7 @@ public class GameController : MonoBehaviour
 
     public void OnDebugInput(InputAction.CallbackContext ctx)
     {
+        return;
         if (ctx.performed && ctx.ReadValue<float>() > 0.5f) {
             EndRound();
         }
@@ -226,11 +233,13 @@ public class GameController : MonoBehaviour
 
     public void OnClickBtnClose()
     {
+        playerAudioSource.PlayOneShot(boopClip);
         HidePadUI();
     }
 
     public void OnClickBtnQuit()
     {
+        playerAudioSource.PlayOneShot(boopClip);
         SceneManager.LoadScene("TitleScene");
     }
 
@@ -239,6 +248,7 @@ public class GameController : MonoBehaviour
         pagePotato.gameObject.SetActive(true);
         pageWelcome.gameObject.SetActive(false);
         pageShop.gameObject.SetActive(false);
+        playerAudioSource.PlayOneShot(boopClip);
     }
 
     public void OnClickBtnWelcome()
@@ -246,6 +256,7 @@ public class GameController : MonoBehaviour
         pagePotato.gameObject.SetActive(false);
         pageWelcome.gameObject.SetActive(true);
         pageShop.gameObject.SetActive(false);
+        playerAudioSource.PlayOneShot(boopClip);
     }
 
     public void OnClickBtnShop()
@@ -253,11 +264,13 @@ public class GameController : MonoBehaviour
         pagePotato.gameObject.SetActive(false);
         pageWelcome.gameObject.SetActive(false);
         pageShop.gameObject.SetActive(true);
+        playerAudioSource.PlayOneShot(boopClip);
     }
 
     public void OnOrderItem(ShopItem shopItem)
     {
         if (persistentData.money - shopItem.price >= 0) {
+            playerAudioSource.PlayOneShot(boopClip);
             // Ehh, so nasty but took too much time trying to figure out how to define item specific callback in the item descriptor in prefab.
             // Probably it should not be defined in prefab as a UnityEvent but do it in some other way.
             if (shopItem.itemName == "Potato farming instructions") {
@@ -273,6 +286,7 @@ public class GameController : MonoBehaviour
         }
         else {
             // Show tooltip?
+            playerAudioSource.PlayOneShot(deniedClip);
         }
     }
 

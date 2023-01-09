@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(AudioSource))]
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
@@ -22,6 +23,19 @@ public class PlayerController : MonoBehaviour
     public Animator toolAnimator;
     private PickupableObject heldObject;
     public Transform toolProxy;
+
+    [SerializeField]
+    AudioSource audioSourceTools;
+    [SerializeField]
+    AudioSource audioSourceFootsteps;
+    [SerializeField]
+    AudioClip[] swooshClips;
+    [SerializeField]
+    AudioClip[] shakeClips;
+    [SerializeField]
+    AudioClip[] footstepClips;
+    [SerializeField]
+    AudioClip[] sloshClips;
     
     // Start is called before the first frame update
     void Start()
@@ -66,6 +80,9 @@ public class PlayerController : MonoBehaviour
         toolAnimator.SetBool("ActivateTool", inputInteract);
 
         inputLook = Vector2.zero;
+        if (grounded && moveVec.magnitude > 1f && !audioSourceFootsteps.isPlaying) {
+            audioSourceFootsteps.PlayOneShot(footstepClips[Random.Range(0, footstepClips.Length)]);
+        }
     }
 
     public void OnInputMove(InputAction.CallbackContext ctx)
@@ -102,7 +119,35 @@ public class PlayerController : MonoBehaviour
             }
             else if (targetObject.GetInteractType() == Interactable.InteractType.Action) {
                 targetObject.Interact(heldObject, interactPosition, cameraTransform.position);
+                if (heldObject is ConsumableObject && (heldObject as ConsumableObject).isConsumed()) {
+                    GameObject temp = heldObject.gameObject;
+                    DropObject();
+                    Destroy(temp);
+                }
             }
+        }
+    }
+
+    public void OnStartAnimation()
+    {
+        if (heldObject == null) {
+            return;
+        }
+        switch (heldObject.pickupObjectType) {
+            case PickupableObject.PickupableObjectType.Hammer:
+            case PickupableObject.PickupableObjectType.Sickle:
+            case PickupableObject.PickupableObjectType.Hoe:
+            case PickupableObject.PickupableObjectType.Potato:
+                audioSourceTools.PlayOneShot(swooshClips[Random.Range(0, swooshClips.Length)]);
+                break;
+            case PickupableObject.PickupableObjectType.Seeds:
+                audioSourceTools.PlayOneShot(shakeClips[Random.Range(0, shakeClips.Length)]);
+                break;
+            case PickupableObject.PickupableObjectType.WateringCan:
+                audioSourceTools.PlayOneShot(sloshClips[Random.Range(0, sloshClips.Length)]);
+                break;
+            default:
+                break;
         }
     }
 

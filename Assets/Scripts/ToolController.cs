@@ -13,6 +13,13 @@ public class ToolController : MonoBehaviour
         playerController = GetComponentInParent<PlayerController>();
     }
 
+    public void StartAnimation()
+    {
+        if (playerController) {
+            playerController.OnStartAnimation();
+        }
+    }
+
     public void AnimationEvent()
     {
         if (playerController) {

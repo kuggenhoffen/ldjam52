@@ -26,4 +26,9 @@ public class Interactable : MonoBehaviour
     {
         return false;
     }
+
+    public virtual void InteractResult(Interactable other, bool success)
+    {
+
+    }
 }

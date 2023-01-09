@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(AudioSource))]
 public class CropController : Interactable
 {
 
@@ -31,6 +32,16 @@ public class CropController : Interactable
     public PlotState state;
     public bool watered;
     public GameController gameController;
+    AudioSource audioSource;
+    [SerializeField]
+    AudioClip[] dirtAudioClips;
+    [SerializeField]
+    AudioClip[] plantAudioClips;
+    [SerializeField]
+    AudioClip[] rockAudioClips;
+    [SerializeField]
+    AudioClip[] waterAudioClips;
+    
 
     private const int rockInteractLimit = 4;
     private const int weedInteractLimit = 2;
@@ -60,7 +71,7 @@ public class CropController : Interactable
     // Start is called before the first frame update
     void Start()
     {
-        
+        audioSource = GetComponent<AudioSource>();        
     }
 
     void OnEnable()
@@ -88,23 +99,33 @@ public class CropController : Interactable
         return (tool != null) && (pt != PickupableObject.PickupableObjectType.Generic) && (tool.pickupObjectType == pt);
     }
 
-    private void SpawnParticles(Vector3 position, Vector3 direction)
+    private void SpawnParticles(PickupableObject tool, Vector3 position, Vector3 direction)
     {
         GameObject particles = null;
         switch (state) {
             case PlotState.Rock:
                 particles = rockHitParticles;
+                audioSource.PlayOneShot(rockAudioClips[Random.Range(0, rockAudioClips.Length)]);
                 break;
             case PlotState.Weed:
             case PlotState.Ready:
                 particles = plantHitParticles;
+                audioSource.PlayOneShot(plantAudioClips[Random.Range(0, plantAudioClips.Length)]);
                 break;
             case PlotState.Empty:
                 particles = soilHitParticles;
+                audioSource.PlayOneShot(dirtAudioClips[Random.Range(0, dirtAudioClips.Length)]);
                 break;
             case PlotState.Sown:
             case PlotState.Shaped:
             case PlotState.Growing:
+                if (!watered && tool.pickupObjectType == PickupableObject.PickupableObjectType.WateringCan) {
+                    audioSource.PlayOneShot(waterAudioClips[Random.Range(0, waterAudioClips.Length)]);
+                }
+                /*else if (tool.pickupObjectType == PickupableObject.PickupableObjectType.Hoe) {
+                    audioSource.PlayOneShot(dirtAudioClips[Random.Range(0, dirtAudioClips.Length)]);
+                }*/
+                break;
             default:
                 break;
         }
@@ -126,7 +147,7 @@ public class CropController : Interactable
             case PlotState.Ready:
                 if (IsCorrectTool(tool)) {
                     interactCount -= 1;
-                    SpawnParticles(interactLocation, sourceLocation - interactLocation);
+                    SpawnParticles(tool, interactLocation, sourceLocation - interactLocation);
                     if (interactCount <= 0) {
                         HandleInteract();
                         res = true;
@@ -138,6 +159,9 @@ public class CropController : Interactable
                 break;
             default:
                 break;
+        }
+        if (tool != null) {
+            tool.InteractResult(this, res);
         }
         return res;
     }
@@ -281,7 +305,7 @@ public class CropController : Interactable
                 break;
             case PlotState.Sown:
                 // Non-watered sown plots get cleared
-                if (false && !watered) {
+                if (!watered) {
                     state = PlotState.Empty;
                 }
                 else {
@@ -290,7 +314,7 @@ public class CropController : Interactable
                 break;
             case PlotState.Growing:
                 // Non-watered sown plots get cleared
-                if (false && !watered) {
+                if (!watered) {
                     state = PlotState.Empty;
                 }
                 else {
