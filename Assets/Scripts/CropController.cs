@@ -22,6 +22,11 @@ public class CropController : Interactable
     public GameObject shapedObject;
     public GameObject sownObject;
     public GameObject potatoPrefab;
+    public GameObject soilHitParticles;
+    public GameObject plantHitParticles;
+    public GameObject rockHitParticles;
+    public Material dryMaterial;
+    public Material wetMaterial;
 
     public PlotState state;
     public bool watered;
@@ -33,7 +38,7 @@ public class CropController : Interactable
     private const int wateringInteractLimit = 1;
     private const int readyInteractLimit = 1;
     private const float interactTimeoutLimit = 1f; 
-    private const int growLimitFinished = 4;
+    private const int growLimitFinished = 3;
     private const int growLimitIntermediate = 1;
     private int growCount = 0;
     private int interactCount;
@@ -82,7 +87,32 @@ public class CropController : Interactable
         return (tool != null) && (pt != PickupableObject.PickupableObjectType.Generic) && (tool.pickupObjectType == pt);
     }
 
-    public override bool Interact(PickupableObject tool)
+    private void SpawnParticles(Vector3 position, Vector3 direction)
+    {
+        GameObject particles = null;
+        switch (state) {
+            case PlotState.Rock:
+                particles = rockHitParticles;
+                break;
+            case PlotState.Weed:
+            case PlotState.Ready:
+                particles = plantHitParticles;
+                break;
+            case PlotState.Empty:
+                particles = soilHitParticles;
+                break;
+            case PlotState.Sown:
+            case PlotState.Shaped:
+            case PlotState.Growing:
+            default:
+                break;
+        }
+        if (particles != null) {
+            Instantiate(particles, position, Quaternion.identity);
+        }
+    }
+
+    public override bool Interact(PickupableObject tool, Vector3 interactLocation, Vector3 sourceLocation)
     {
         bool res = false;
         switch (state) {
@@ -95,6 +125,7 @@ public class CropController : Interactable
             case PlotState.Ready:
                 if (IsCorrectTool(tool)) {
                     interactCount -= 1;
+                    SpawnParticles(interactLocation, sourceLocation - interactLocation);
                     if (interactCount <= 0) {
                         HandleInteract();
                         res = true;
@@ -127,9 +158,11 @@ public class CropController : Interactable
                 break;
             case PlotState.Sown:
                 watered = true;
+                SetMaterial(watered);
                 break;
             case PlotState.Growing:
                 watered = true;
+                SetMaterial(watered);
                 break;
             case PlotState.Ready:
                 state = PlotState.Empty;
@@ -142,6 +175,17 @@ public class CropController : Interactable
         Reset();
         if (spawnPotato) {
             Instantiate(potatoPrefab, transform.position, Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360)));
+        }
+    }
+
+    private void SetMaterial(bool watered)
+    {
+        List<MeshRenderer> plotRenderers = new List<MeshRenderer>();
+        plotRenderers.AddRange(plotObject.GetComponentsInChildren<MeshRenderer>());
+        plotRenderers.AddRange(sownObject.GetComponentsInChildren<MeshRenderer>());
+        plotRenderers.AddRange(shapedObject.GetComponentsInChildren<MeshRenderer>());
+        foreach (MeshRenderer mr in plotRenderers) {
+            mr.material = watered ? wetMaterial : dryMaterial;
         }
     }
 
@@ -218,7 +262,7 @@ public class CropController : Interactable
     void SetObjectActive(GameObject obj, bool enable)
     {
         if (obj.activeInHierarchy != enable) {
-            obj.SetActive(enable);         
+            obj.SetActive(enable);
         }
     }
 
@@ -251,9 +295,6 @@ public class CropController : Interactable
                     if (growCount >= growLimitFinished) {
                         state = PlotState.Ready;
                     }
-                    else if (growCount >= growLimitIntermediate) {
-                        state = PlotState.Growing;
-                    }
                     growCount++;
                 }
                 break;
@@ -262,6 +303,7 @@ public class CropController : Interactable
         }
 
         watered = false;
+        SetMaterial(watered);
 
         Reset();
     }

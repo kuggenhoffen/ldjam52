@@ -14,7 +14,9 @@ public class GameController : MonoBehaviour
     private CropController[] plots;
     private const float weedDistribution = 0.3f;
     private const float rockDistribution = 0.3f;
-
+    private const float roundTime = 2 * 60f;
+    private float roundTimer = 0f;
+    
     private int money = 100;
     private int daysLeft = 2;
 
@@ -33,6 +35,10 @@ public class GameController : MonoBehaviour
     public Transform deliveryProxy;
     public GameObject deliveryBoxPrefab;
     public PotatoHopper hopper;
+    public Transform playerSpawn;
+    public GameObject player;
+    public RectTransform timerNeedle;
+    public TMPro.TMP_Text moneyText;
 
     // Start is called before the first frame update
     void Start()
@@ -44,12 +50,20 @@ public class GameController : MonoBehaviour
         pageShop.gameObject.SetActive(false);
         btnPotato.gameObject.SetActive(false);
         HidePadUI();
+        timerNeedle.eulerAngles = Vector3.zero;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (input.enabled) {
+            roundTimer -= Time.deltaTime;
+            if (roundTimer <= 0f) {
+                EndRound();
+            }
+        }
+        timerNeedle.eulerAngles = Vector3.forward * Mathf.Lerp(0f, -180f, (roundTime - roundTimer) / roundTime);
+        moneyText.SetText(string.Format("{0} $", money));
     }
     
     void OnEnable()
@@ -150,6 +164,13 @@ public class GameController : MonoBehaviour
         int potatoCount = hopper.GetPotatoCount();
         money += potatoCount * 20;
         hopper.ClearPotatoes();
+
+        player.GetComponent<CharacterController>().enabled = false;
+        player.transform.position = playerSpawn.position;
+        player.transform.forward = playerSpawn.forward;
+        player.GetComponent<CharacterController>().enabled = true;
+
+        roundTimer = roundTime;
     }
 
     void BlackoutFinishedCallback()

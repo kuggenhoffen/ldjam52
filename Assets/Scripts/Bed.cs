@@ -24,6 +24,7 @@ public class Bed : Interactable
         return InteractType.Action;
     }
 
+
     public override bool Interact(PickupableObject tool)
     {
         if (tool != null) {

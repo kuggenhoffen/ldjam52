@@ -6,11 +6,13 @@ public class DeliveryBox : Interactable
 {
 
     public List<GameObject> items = new List<GameObject>();
+    
+    [SerializeField]
+    GameObject psPrefab;
 
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -37,6 +39,8 @@ public class DeliveryBox : Interactable
         foreach (GameObject obj in items) {
             Instantiate(obj, pos, Quaternion.identity);
         }
+
+        Instantiate(psPrefab, transform.position, Quaternion.identity);
 
         return true;
     }

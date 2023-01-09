@@ -35,6 +35,11 @@ public class PickupableObject : Interactable
         return (tool == null);
     }
 
+    public override bool Interact(PickupableObject tool, Vector3 interactLocation, Vector3 sourceLocation)
+    {
+        return Interact(tool);
+    }
+
     private void SetLayerForChildrenRecursive(GameObject obj, int layer)
     {
         foreach(Transform tf in obj.GetComponentsInChildren<Transform>()) {

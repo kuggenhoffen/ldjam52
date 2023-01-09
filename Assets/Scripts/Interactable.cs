@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Interactable : MonoBehaviour
+public class Interactable : MonoBehaviour
 {
 
     public enum InteractType {
@@ -11,8 +11,19 @@ public abstract class Interactable : MonoBehaviour
     };
 
 
-    public abstract InteractType GetInteractType();
+    public virtual InteractType GetInteractType()
+    {
+        throw new System.NotImplementedException();
+    }
     
 
-    public abstract bool Interact(PickupableObject tool);
+    public virtual bool Interact(PickupableObject tool)
+    {
+        return false;
+    }
+
+    public virtual bool Interact(PickupableObject tool, Vector3 interactLocation, Vector3 sourceLocation)
+    {
+        return false;
+    }
 }

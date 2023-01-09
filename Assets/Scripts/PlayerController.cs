@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 velocity;
     private float moveSpeed = 10f;
     private Interactable targetObject = null;
+    private Vector3 interactPosition;
 
     private Vector2 inputMove;
     private Vector2 inputLook;
@@ -22,7 +23,6 @@ public class PlayerController : MonoBehaviour
     private PickupableObject heldObject;
     public Transform toolProxy;
     
-
     // Start is called before the first frame update
     void Start()
     {
@@ -101,12 +101,12 @@ public class PlayerController : MonoBehaviour
         }
         else if (targetObject) {
             if (targetObject.GetInteractType() == Interactable.InteractType.Pickup && heldObject == null) {
-                targetObject.Interact(heldObject);
+                targetObject.Interact(heldObject, interactPosition, cameraTransform.position);
                 PickupObject((PickupableObject)targetObject);
                 targetObject = null;
             }
             else if (targetObject.GetInteractType() == Interactable.InteractType.Action) {
-                targetObject.Interact(heldObject);
+                targetObject.Interact(heldObject, interactPosition, cameraTransform.position);
             }
         }
     }
@@ -121,6 +121,7 @@ public class PlayerController : MonoBehaviour
             Interactable obj = hit.transform.GetComponentInParent<Interactable>();
             if (obj != null) {
                 targetObject = obj;
+                interactPosition = hit.point;
             }
         }
     }
