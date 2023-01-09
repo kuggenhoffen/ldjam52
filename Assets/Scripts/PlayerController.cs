@@ -93,6 +93,7 @@ public class PlayerController : MonoBehaviour
     public void OnInputLook(InputAction.CallbackContext ctx)
     {
         inputLook = ctx.ReadValue<Vector2>();
+        inputLook *= PlayerPrefs.GetFloat("sensitivity", 1f);
     }
 
     public void OnInputInteract(InputAction.CallbackContext ctx)
